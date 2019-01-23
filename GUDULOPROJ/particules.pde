@@ -5,10 +5,10 @@ class Particle {
   //  float[] xT = new float [n];
   // float[] yT = new float[n];
   float xT, yT, maxLines;
-  float[] xoff = new float[n];
-  float[] yoff = new float[n];
-  float[] xpos = new float[n];
-  float[] ypos = new float[n];
+  float[] xoff = new float[nb];
+  float[] yoff = new float[nb];
+  float[] xpos = new float[nb];
+  float[] ypos = new float[nb];
   float numDist ;//numérateur pour l'attraction, modifié pour changer le rapport m 
   ArrayList<Toile> toiles = new ArrayList();
 
@@ -127,6 +127,12 @@ class Particle {
   }
 
 
+/////////////////////////// DISCRIMINATION DES FAIBLES /////////////////////////////////////////
+
+void killWeak(int _j){
+  if (life < 5 ) particules.remove(_j) ;
+}
+
   /////////////////////////////// TOILE D ARAIGNEE //////////////////////////
 
   void toileAraignee(float _x, float _y, float _maxLines, float transparence) {
@@ -160,8 +166,8 @@ class Particle {
   //////////////////////////////// LIFE AGENTS //////////////////////////////////////////////////////////////
   
   float life_agents(){
-      //hunger
-  if (frameCount % 5 == 0 && life < 700)   life +=1;
+      //hunger                      //transparence max value
+  if (frameCount % 5 == 0 && life < 255)   life +=1;
    return life;
  }
  
@@ -186,7 +192,7 @@ boolean faim(){
   /////////////////// UPDATE ///////////////////////////////////////////////////////////
   void update() {  
     numDist = 400;
-    for (int i =0; i <particules.length; i ++) {
+    for (int i =0; i < particules.size(); i ++) {
       xoff[i] += random(0.08);
       yoff[i] += random(0.08);
       //float bou = map (noise(xoff[i],i*5,50), 0, 1, -5, 5);
@@ -202,7 +208,7 @@ boolean faim(){
     if (openDoor == true) {
       numDist = 10000;
       target = new PVector(width/2, height/2);
-      for (int i = 0; i < particules.length; i ++) {
+      for (int i = 0; i < particules.size(); i ++) {
         xT = target.x; //keep them on the central target
         yT = target.y;
       }
@@ -229,6 +235,8 @@ boolean faim(){
     //mettre à jour sa jauge de vie & faim
    // life_agents();
    //faim(location.x, location.y);
+   
+
   }
 
 
@@ -242,6 +250,7 @@ boolean faim(){
     ellipse(width/2, height/2, 100, 100);
 
     killCowards(_index);
+    killWeak(_index);
     return location;
   }
 }
