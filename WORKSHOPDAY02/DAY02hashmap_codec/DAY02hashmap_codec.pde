@@ -15,8 +15,11 @@ String testPrefix = "172";
 int n = 0;
 int oldNumber;
 int codecnumber=0;
+//int timer_check, t_stamp_check ; //vérification périodique des IP connectées
+//int IpNumber ; // liste d'IP connectés refreshed ré"gulièrement
 
 HashMap<String, Integer> hm = new HashMap<String, Integer>();
+//HashMap<String, Integer> IpList = new HashMap<String, Integer>()
 
 void setup() {
   size(600, 400);
@@ -28,11 +31,18 @@ void setup() {
 }
 
 void draw() {
+ // t_stamp_check = millis();
+ // checkIpAdress();
+ // if ( t_stamp_check > timer_check){
+ //  IpList.clear();
+ //}
 }
 
 // Called each time a new packet arrives
 void packetEvent(CarnivorePacket p) {
   //println("(" + p.strTransportProtocol + " packet) " + p.senderSocket() + " > " + p.receiverSocket());
+  
+ // timer_check = millis() + 30000; //toutes les 30sec
 
   String[] parts = p.senderSocket().split(":");
   String part1 = parts[0]; 
@@ -43,7 +53,9 @@ void packetEvent(CarnivorePacket p) {
    println(codecnumber);
 
 
-  hm.put(parts[0], 1);
+  hm.put(parts[0], 1); //tableau d'affichage
+  //IpList.put(parts[0],1); // tableau de verification
+   // IpNumber = IpList.size(); //nombre actuel d'appareils connectés 
 
   /*
   for (Map.Entry me : hm.entrySet()) {
@@ -66,9 +78,17 @@ void packetEvent(CarnivorePacket p) {
   println("Appareils connectés : ", n);
   n = 0;
   println("hm.size = ", hm.size());
-
+  
   /// println(tab);
-
   //println("Payload: " + p.ascii());
   //println("---------------------------\n");
 }
+
+/*
+void checkIpAdress(){
+  if ( n != IpNumber && IpNumber != 0) { // mettre à jour le bon nombre d'(ip connectées
+  n = Ipnumber;
+  println("changement dans lza liste d'IP");
+}
+}
+*/
