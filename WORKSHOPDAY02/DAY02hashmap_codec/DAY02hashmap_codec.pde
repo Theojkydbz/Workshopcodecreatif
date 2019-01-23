@@ -39,7 +39,6 @@ void packetEvent(CarnivorePacket p) {
   String part2 = parts[1]; 
   //String[] parties = "Nom de la string qui contient tout"().split("==");
   String codec = p.ascii(); 
- 
   codecnumber+=codec.length();
    println(codecnumber);
 
