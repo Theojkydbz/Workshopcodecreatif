@@ -47,6 +47,21 @@ PVector manger;
 ArrayList<back> Back;
 circlezone Circlezone = new circlezone(); 
 
+/////////////////////// REQUEST POP //////////////////////
+float noisoff=0;
+float val=0;
+popper Popper1 = new popper(); 
+int formResolution = 16;
+boolean isactive = false;
+float distortionFactor = 1;
+float initRadius = 150;
+float centerX, centerY;
+float[] xstart = new float[formResolution];
+float[] ystart = new float[formResolution];
+float[] xbeg = new float[formResolution];
+float[] ybeg = new float[formResolution];
+
+
 void setup() {
   fullScreen(P2D);
   pgPop = createGraphics(width,height);
@@ -59,8 +74,9 @@ void setup() {
   particules = new ArrayList();
   hamburger = new ArrayList();
 
+
+/////// INIT AGENTS //////
   for (int i = 0; i < 3; i++) {
-    
     float angle = random(TWO_PI);
     float r = random(140, 200);
     float x = width/2 + r*cos(angle);
@@ -68,11 +84,20 @@ void setup() {
     particules.add(new Particle(x,y, 255));
   }
 
+////// INIT POPPERS //////
+  float angle = radians(360/float(formResolution));
+    for (int i=0; i<formResolution; i++) {
+      xbeg[i] = cos(angle*i) * initRadius;
+      ybeg[i] = sin(angle*i) * initRadius;  
+      xstart[i] =xbeg[i];
+      ystart[i] =ybeg[i];
+    }
+      
   for (int i=0; i<1000; i++) {
     Back.add(new back());
   }
 
-  Pop = minim.loadFile("POP.wav");
+  Pop = minim.loadFile("POPCOURT.wav");
   Ambiance = minim.loadFile("AMBIANCE3.wav");
   Ambiance.loop();
 
@@ -108,9 +133,8 @@ for (int i = 0; i < particules.size(); i++) {
   particucule.display(i);
 }
 
-  if ( Pop.position() < Pop.length() * 0.5 && Pop.isPlaying()) {
+  if ( Pop.position() < Pop.length()&& Pop.isPlaying()) {
     Circlezone.updater(); 
-    println("sqsdfg");
   } else Circlezone.reset();
 
 //verify if there is at least one hamburger on screen

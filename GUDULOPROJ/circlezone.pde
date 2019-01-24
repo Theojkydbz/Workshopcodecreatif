@@ -6,7 +6,7 @@ class circlezone {
   float ease = 0.1;
 
   void updater() {
-    currSize+=((maxSize-currSize)*ease);
+    currSize += ((maxSize-currSize)*ease);
     drawBlackHole(currSize);
   }
   
@@ -17,15 +17,15 @@ class circlezone {
     //pgPop.beginDraw();
     //centers pen
     //loops through 10 times
-    for (int i = 0; i < 3 ; i++) { //u change la densité de l'animation
+    for (int i = 0; i < 2 ; i++) { //u change la densité de l'animation
       //rotates semi-randomly to add vaiation to the black hole
       rotation += random(0.05, 0.1);
       rotate(rotation);
       noFill();
       stroke(20, 20, 254);
-      ellipse(0, 0, random(1, 300 * size), 400 * size);
+      ellipse(0, 0, random(1, 250 * size), 300 * size);
       rotate(rotation+90);
-      ellipse(0, 0, random(1, 300 * size), 400 * size);
+      ellipse(0, 0, random(1, 250 * size), 300 * size);
     }
           popStyle();
           popMatrix();
