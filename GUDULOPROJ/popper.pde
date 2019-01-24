@@ -6,8 +6,8 @@ class popper {
 
   void resizer(){
 for (int i=0; i<formResolution; i++){
-   xbeg[i]=lerp(xbeg[i],xstart[i],0.005);
-   ybeg[i]=lerp(ybeg[i],ystart[i],0.005);
+   xbeg[i]=lerp(xbeg[i],xstart[i],0.5);
+   ybeg[i]=lerp(ybeg[i],ystart[i],0.5);
   }
 }
   

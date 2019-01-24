@@ -9,7 +9,7 @@ class Hamburger {
 
   void display() {
     pushStyle();
-    fill(20, 190, 30);
+    fill(255);
     noStroke();
     float x = random(width / 2 - 50, width / 2 + 50);
     float y = random(height / 2 - 50, height / 2 + 50);
