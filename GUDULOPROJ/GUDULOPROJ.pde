@@ -1,9 +1,23 @@
+import ddf.minim.*;
+import ddf.minim.analysis.*;
+import ddf.minim.effects.*;
+import ddf.minim.signals.*;
+import ddf.minim.spi.*;
+import ddf.minim.ugens.*;
+
 
 //::::::::::CARNIVORE::::::::::::\\
 import java.util.Map;
 import org.rsg.carnivore.*;
 import org.rsg.lib.Log;
 
+Minim minim;
+AudioPlayer Pop;
+AudioPlayer Ambiance;
+
+float timePop ;
+float soundDuration;
+PGraphics pgPop;
 
 CarnivoreP5 c;
 String testPrefix = "172";
@@ -13,7 +27,7 @@ int codecnumber=0;
 HashMap<String, Integer> hm = new HashMap<String, Integer>();
 ////////////////  END CARNIVORE /////////////////////
 
-
+float bestcodec = 0 ;
 //////////// particules ///////////
 int nb =10000;
 ArrayList<Particle> particules ;
@@ -29,27 +43,43 @@ int Agents ; //nb d'agents
 PVector manger;
 
 
-///////////////////// Hamburger :////////:::
-
+///////////////////// BACKGROUND :///////////////
+ArrayList<back> Back;
+circlezone Circlezone = new circlezone(); 
 
 void setup() {
-  size(800, 800);
+  fullScreen(P2D);
+  pgPop = createGraphics(width,height);
+  minim = new Minim(this);
   background(255);
   smooth();
   stroke(0, 64);
   manger = new PVector(width/2, height/2);
-
+  Back = new ArrayList<back>(1000);
   particules = new ArrayList();
   hamburger = new ArrayList();
+
   for (int i = 0; i < 3; i++) {
-    particules.add(new Particle(int(random(0, width)), int(random(0, height)), 255));
+    
+    float angle = random(TWO_PI);
+    float r = random(140, 200);
+    float x = width/2 + r*cos(angle);
+    float y = height/2 + r*sin(angle);
+    particules.add(new Particle(x,y, 255));
   }
 
+  for (int i=0; i<1000; i++) {
+    Back.add(new back());
+  }
+
+  Pop = minim.loadFile("POP.wav");
+  Ambiance = minim.loadFile("AMBIANCE3.wav");
+  Ambiance.loop();
 
   //::::::::::CARNIVORE::::::::::::\\
   Log.setDebug(true); // Uncomment for verbose mode
   c = new CarnivoreP5(this);
-  
+
   pixelDensity(1);
 }
 
@@ -59,26 +89,35 @@ void draw() {
   rect(0, 0, width, height);
   popMatrix();
 
-  //si un objet apparait (et donc que le centre est accessible), je lance un timer pour les exciter avant qu'ils se lancent dans l'agrerssion du pauvre petit paquet qui a pop
-  if (openDoor == true ) t_stamp = millis();
-  if ( frameCount % 60 == 0) codecnumber = 0 ; // reset la quantité de codecs toutes les secondes
+  maj();
 
-  for (int i = 0; i < particules.size(); i++) {
-    Particle particucule = particules.get(i);
-    particucule.update();
-    particucule.display(i);
-  }
+//si un objet apparait (et donc que le centre est accessible), je lance un timer pour les exciter avant qu'ils se lancent dans l'agrerssion du pauvre petit paquet qui a pop
+if (openDoor == true ) t_stamp = millis();
+if ( frameCount % 60 == 0) codecnumber = 0 ; // reset la quantité de codecs toutes les secondes
+
 
 for (int i = 0; i < hamburger.size(); i++) {
-    Hamburger frites = hamburger.get(i);
-    frites.display();
-  }
+  Hamburger frites = hamburger.get(i);
+  frites.display();
+}
 
-  //verify if there is at least one hamburger on screen
-  if (hamburger.size() == 0) { //if there isn't, so close access to center
-    openDoor = false;
-    timer = t_stamp + 1;
-  }
+
+for (int i = 0; i < particules.size(); i++) {
+  Particle particucule = particules.get(i);
+  particucule.update();
+  particucule.display(i);
+}
+
+  if ( Pop.position() < Pop.length() * 0.5 && Pop.isPlaying()) {
+    Circlezone.updater(); 
+    println("sqsdfg");
+  } else Circlezone.reset();
+
+//verify if there is at least one hamburger on screen
+if (hamburger.size() == 0) { //if there isn't, so close access to center
+  openDoor = false;
+  timer = t_stamp + 1;
+}
 }
 
 
@@ -92,7 +131,7 @@ void packetEvent(CarnivorePacket p) {
   println("codeeecumber = ", codecnumber);
   hm.put(parts[0], 1); //tableau d'affichage
   constrain(codecnumber, 0, 3000);
-  float energie = map (codecnumber, 0, 3000, 0, 40) ;
+  float energie = map (codecnumber, 0, 13135, 0, 40) ;  //13135 plus grande valeur observée sur plsueirus longueds observations
 
   ////////////////// CONNEXIONS APPAREILS /////////////////
   for (Map.Entry me : hm.entrySet()) {
@@ -102,17 +141,22 @@ void packetEvent(CarnivorePacket p) {
       appareilsCo++;
     }
   }
-  
-  
+
+
   /////////////////////// REQUETES INTERNET /////////////////////
   if (energie != 0 && oldNumber == appareilsCo && appareilsCo != 0) { //avoid connexions packets
-    println("coedc " , codecnumber);
-    hamburger.add(new Hamburger(random((width/2) - 50, (width / 2) + 50), random((height / 2 ) - 50, (height / 2) + 50), energie));
+    //println("coedc " , codecnumber);
+    hamburger.add(new Hamburger(random((width/2) - 50, (width / 2) + 50), random((height / 2 ) - 50, (height / 2) + 50), energie)); //nouveau truc à manger
+    playSound(Pop);
     openDoor = true;
     timer = millis() + 600; // timer pour l'excitation des particles
   }
-  
-/////////////// NOUVELLE CONNEXION ////////////////////
+
+  if (bestcodec < codecnumber) bestcodec = codecnumber ; 
+  println("best codec = ", bestcodec);
+
+ 
+  /////////////// NOUVELLE CONNEXION ////////////////////
   if (oldNumber < appareilsCo) {
     println("Nouvelle connexion !");
     oldNumber = appareilsCo;
@@ -124,4 +168,23 @@ void packetEvent(CarnivorePacket p) {
   println("hmSize = ", hm.size());
   println("*****************************************************************");
   appareilsCo = 0; //clear the value
+}
+
+void maj() {
+  for (int u=0; u< Back.size(); u++) {
+    back maj = Back.get(u);
+    maj.update();
+    maj.display();
+  }
+}
+
+void playSound(AudioPlayer sound) {
+  if (sound.isPlaying() == true) {
+    sound.pause();
+    sound.rewind();
+    sound.play();
+  } else {
+    sound.rewind();
+    sound.play();
+  }
 }

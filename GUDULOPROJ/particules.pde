@@ -13,7 +13,7 @@ class Particle {
   ArrayList<Toile> toiles = new ArrayList();
 
 
-  Particle(int x, int y, int _transparenceLife) {
+  Particle(float x, float y, int _transparenceLife) {
     // particle class should have location, vitesse & acceleration
     location = new PVector(x, y);
     vitesse = new PVector(0, 0);
@@ -30,7 +30,7 @@ class Particle {
     float distance = attraction.mag();
     if (openDoor == true) {
       distance = distance * 0.73 ;    // également pour diminuer la valeur pour accéléder le mvt des particules, tout est bon dans le cochon!
-      if ( timer > t_stamp ) numDist = 30; // particules qui s'excitent avant de se jeter sur la proie
+      if ( timer > t_stamp ) numDist = 3; // particules qui s'excitent avant de se jeter sur la proie
     }
 
     float m = numDist /(distance * distance); //formule de gravité pour calculer la force = l'accélération
@@ -65,36 +65,30 @@ class Particle {
   ///////////////////// RESTER DANS L'ECRAN /////////////////////////////////
   //ensure that the particles remain on screen
   void stayHereBro() {
-    PVector testZone = location; // vecteur temporaire pour faire les tests
-    testZone.add(vitesse);
+    PVector testVect = location; // vecteur temporaire pour faire les tests
+    testVect.add(vitesse);
     int dir = (int(random(0, 2)) < 1) ? 1: -1;     //set rebound direction
+    float donuts = dist(testVect.x, testVect.y, width /2, height /2);
 
-    if (testZone.x > width - 10 || testZone.x < 10) {
+    if (donuts > 400) {
       vitesse.x = - vitesse.x * 2; //rebondir sur la paroi,
       vitesse.y = dir * vitesse.y; //dans n'importe quelle direction
       //println("sortie X");
     }
-
-    if (testZone.y > height - 10 || testZone.y < 10) {
-      vitesse.y = - vitesse.y * 2;
-      vitesse.x = dir * vitesse.y;
-      //   println("sortie Y");
-    }
-
-    degagedela(testZone.x, testZone.x); //zone centrale
+    degagedela(testVect.x, testVect.x); //zone centrale
   }
 
   /////////////////////// ZONE CENTRALE //////////////////////////////////
-  void degagedela(float _zoneX, float _zoneY) {
+  void degagedela(float _vectX, float _vectY) {
     //dégagez ! c'est le blackhole ici !
-    float  trou = dist(location.x, location.y, _zoneX, _zoneY);
+    float  trou = dist(width / 2, height / 2, _vectX, _vectY);
 
     if (trou < 161 && openDoor == false) { //si ils sont à X distance du centre et qu'il n'y a pas de food,
       int dir = (int(random(0, 2)) < 1) ? 1: -1;       //attribut 
       int dir2 = (int(random(0, 2)) < 1) ? 1: -1;       //attribut 2
-      numDist = 5000 ; //en augmentant le numérateur du rapport d'attraction, j'augmente sa vitesse de déplcement : l'agent est perturbé car ilse trovue dans "LA ZONE INTERDIIIIITE" --> il peut forcer la condition pour en sortir (plus rapidement au passage) car les déplacements effectués sont plus grands
-      xT = _zoneX + ( 50 * dir );     // forcer une ejection du centre
-      yT = _zoneY + ( 50 * dir2 );
+      numDist = 8000 ; //en augmentant le numérateur du rapport d'attraction, j'augmente sa vitesse de déplcement : l'agent est perturbé car ilse trovue dans "LA ZONE INTERDIIIIITE" --> il peut forcer la condition pour en sortir (plus rapidement au passage) car les déplacements effectués sont plus grands
+      xT = _vectX + ( 50 * dir );     // forcer une ejection du centre
+      yT = _vectY + ( 50 * dir2 );
       applyForces();
 
       //tracés fantômes ; d'où sortent-ils ?
@@ -148,8 +142,6 @@ class Particle {
     //virer les anciennes valeurs
     if (toiles.size() > 1000) toiles.remove(0);
 
-
-
     if (toiles.size() >= 1000) {
       // println(_maxLines);
       for (int i = 1; i < _maxLines; i += 25) {
@@ -162,7 +154,7 @@ class Particle {
         if (d <= 40 ) {
           //  println("on peut dessiner");
           pushStyle();
-          strokeWeight(1);
+          strokeWeight(random(0.5,1.2));
           stroke(255, transparence);
           line(_x, _y, t.posX, t.posY);
           popStyle();
@@ -188,7 +180,7 @@ class Particle {
     float seuilLife = map ( life, 0, 255, 0, 1);
     if (seuilLife < 0.2 && openDoor == true ) _faim = true ; //si sa jauge de vie faible, et qu'un objet nourriture est apparu, alors le monstre a faim
     if (seuilLife > 0.8) {
-      degagedela(location.x, location.y); //si il depasse les 0,8 , alors il n'a plus faim et repards (la fonction degage force les monstres a ressortir)
+      degagedela(location.x, location.y); //si il depasse les 0,8 , alors il n'a plus faim et repart (la fonction degage force les monstres a ressortir)
       _faim = false ;
     }
     if (openDoor == false) {
@@ -202,7 +194,7 @@ class Particle {
   ////////////////////////// MONSTRES QUI SE DIRIGENT VERS LEUR REPAS //////////////////////////
   void OnALaDalle(float _x, float _y) {
     if (openDoor == true) {
-      numDist = 10000;
+      numDist = 7000;
       float cibleProche = width;
       float xproche = width / 2;
       float yproche = height / 2;
@@ -226,7 +218,7 @@ class Particle {
   }
   /////////////////// UPDATE ///////////////////////////////////////////////////////////
   void update() {  
-    numDist = 400;
+    numDist = 4000;
     for (int i =0; i < particules.size(); i ++) {
       xoff[i] += random(0.18);
       yoff[i] += random(0.18);
@@ -262,7 +254,7 @@ class Particle {
     //mettre à jour sa jauge de vie & faim
     life_agents();
     faim();
-    println("vie = ", life);
+    //println("vie = ", life);
   }
 
   //////////////////////////// SE NOURRIR ////////////////////////////
@@ -283,16 +275,13 @@ class Particle {
   
   /////////////////////////////// DISPLAY ////////////////////////////////
   PVector display(int _index) {
-    //fill(0, 255, 0);
     pushStyle();
     fill(255, life);
-    ellipse(location.x, location.y, 1, 1);
+    ellipse(location.x, location.y, 5, 5);
     popStyle();
 
     toileAraignee(location.x, location.y, maxLines, life);
-    noFill();
-    stroke(255);
-    ellipse(width/2, height/2, 300, 300);
+
 
     killCowards(_index);
     killWeak(_index);
