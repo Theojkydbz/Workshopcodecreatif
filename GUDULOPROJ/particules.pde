@@ -98,11 +98,11 @@ class Particle {
       applyForces();
 
       //tracés fantômes ; d'où sortent-ils ?
-      pushStyle();
-      fill(255, 0, 0);
-      noStroke();
-      ellipse(_zoneX, _zoneY, 5, 5);
-      popStyle();
+    //  pushStyle();
+     // fill(255, 0, 0);
+     // noStroke();
+     // ellipse(_zoneX, _zoneY, 5, 5);
+     // popStyle();
 
       // println("trou = ", trou);
       // println("////////////", _zoneX, " ////// zoneY = ", _zoneY);
@@ -111,18 +111,18 @@ class Particle {
   }
 
   /////////////////// COWARDS ////////////////////////////////////// 
-  //sometimes, some of them are des petits coquins qui passent à travers les mailles du filet, et ici, c'est une dictature !
+  //sometimes, some of them are des petits coquins qui passent à travers les mailles du filet, et ici, c'est une dictature ! Tout le monde reste dans l'octogone .
   //donc les lâches fuyant la sainte mère patrie seront éliminés sans regrets
   void killCowards(int index) {
-    if (xT < 0 || xT > width || yT < 0 || yT > height) {
+    if (location.x < 0 || location.x > width || location.y < 0 || location.y > height) {
       //reset noise values to respawn it in the screen
       xoff[index] = 0;
       yoff[index] = 0;
-      if (xT<0) xT = random(11, (width/2) - 51);
-      if (xT>width) xT = random((width/2) + 51, width -11);
-      if (yT<0) yT = random(11, (height/2)- 51);
-      if (yT>height) yT = random((height/2)+51, height - 11);
+      particules.remove(index); // pendez-le ! sus au traitre !
+      particules.add(new Particle(int(random(0, width)), int(random(0, height)), 255)) ; // oh ! une nouvelle tete dans la population !
+      
       applyForces();
+    
     }
   }
 
@@ -130,7 +130,16 @@ class Particle {
   /////////////////////////// DISCRIMINATION DES FAIBLES /////////////////////////////////////////
 
   void killWeak(int _j) {
-    if (life < 5 ) particules.remove(_j) ;
+    if (life < 6  && particules.size() > 3 ) particules.remove(_j) ;
+    //redonner de la vie aux trois restants trop faibles :
+    if ( particules.size() == 3){
+     for ( int i = 0 ; i < particules.size() ; i++){ //verifier la vie / transparence de chacun des trois derniers, et la réaugmenter progressivment si trop faible
+       Particle part = particules.get(i);
+       if ( part.life < 150) {
+         life = lerp(life,255,0.8);
+       }
+     }
+    }
   }
 
   /////////////////////////////// TOILE D ARAIGNEE //////////////////////////
@@ -143,17 +152,17 @@ class Particle {
 
     if (toiles.size() >= 1000) {
       // println(_maxLines);
-      for (int i = 1; i < _maxLines; i += 50) {
+      for (int i = 1; i < _maxLines; i += 25) {
         //println("toilessize ok");
         Toile t = toiles.get(i);
         //Distance 
         float d = dist(_x, _y, t.posX, t.posY);
         //Probabilité de rencontre
-        float p = random(20);
-        if (d <= 35 && p<1) {
+        float p = random(10);
+        if (d <= 40 ) {
           //  println("on peut dessiner");
           pushStyle();
-          strokeWeight(0.5);
+          strokeWeight(1);
           stroke(255, transparence);
           line(_x, _y, t.posX, t.posY);
           popStyle();
@@ -167,7 +176,7 @@ class Particle {
 
   float life_agents() {
     //hunger                      //transparence max value
-    if (frameCount % 5 == 0 && life < 255)   life +=1;
+    if (frameCount % 5 == 0 && life > 5 && particules.size() > 3)   life -= 1; //à intervalles réguliers, si la vie n'est pas déjà à 5 (suppression), et si il y a plus que les 3 agents de base (qui attirent le visiteur)
     return life;
   }
 
@@ -253,6 +262,7 @@ class Particle {
     //mettre à jour sa jauge de vie & faim
     life_agents();
     faim();
+    println("vie = ", life);
   }
 
   //////////////////////////// SE NOURRIR ////////////////////////////
@@ -266,7 +276,7 @@ class Particle {
 
       if ( cible < 10) {
         hamburger.remove(i);//cible mangée
-        life += nrj; // regagner de la vie en absorbant l'energie de la cible
+        if (life + nrj <= 255) life += nrj; // regagner de la vie en absorbant l'energie de la cible sans dépasser la limite 255
       }
     }
   }
@@ -274,7 +284,10 @@ class Particle {
   /////////////////////////////// DISPLAY ////////////////////////////////
   PVector display(int _index) {
     //fill(0, 255, 0);
+    pushStyle();
+    fill(255, life);
     ellipse(location.x, location.y, 1, 1);
+    popStyle();
 
     toileAraignee(location.x, location.y, maxLines, life);
     noFill();
