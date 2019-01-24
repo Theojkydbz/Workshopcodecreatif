@@ -1,7 +1,3 @@
-//
-
-
-
 
 //::::::::::CARNIVORE::::::::::::\\
 import java.util.Map;
@@ -28,25 +24,16 @@ float xoff, yoff;
 float[] x = new float[nb]; 
 float[] y = new float[nb]; 
 boolean openDoor = false;
-float timer, t_stamp, t_life; //timer d'excitation et décompte de la jauge de vie des particules
+float timer, t_stamp, t_life; //timer = excitation et décompte de la jauge de vie des particules : t_agglo = pour agglomérer la taille des codecs / sec 
 int Agents ; //nb d'agents
 PVector manger;
 
 
 ///////////////////// Hamburger :////////:::
-int formResolution = 15;
-boolean isactive = false;
-float distortionFactor = 1;
-float initRadius = 150;
-float centerX, centerY;
-float[] xstart = new float[formResolution];
-float[] ystart = new float[formResolution];
-float[] xbeg = new float[formResolution];
-float[] ybeg = new float[formResolution];
 
 
 void setup() {
-  size(500, 500);
+  size(800, 800);
   background(255);
   smooth();
   stroke(0, 64);
@@ -62,16 +49,19 @@ void setup() {
   //::::::::::CARNIVORE::::::::::::\\
   Log.setDebug(true); // Uncomment for verbose mode
   c = new CarnivoreP5(this);
+  
+  pixelDensity(1);
 }
 
 void draw() {
   pushMatrix();
-  fill(255, 20);
+  fill(0, 10);
   rect(0, 0, width, height);
   popMatrix();
 
   //si un objet apparait (et donc que le centre est accessible), je lance un timer pour les exciter avant qu'ils se lancent dans l'agrerssion du pauvre petit paquet qui a pop
   if (openDoor == true ) t_stamp = millis();
+  if ( frameCount % 60 == 0) codecnumber = 0 ; // reset la quantité de codecs toutes les secondes
 
   for (int i = 0; i < particules.size(); i++) {
     Particle particucule = particules.get(i);
@@ -79,10 +69,9 @@ void draw() {
     particucule.display(i);
   }
 
- for (int i = 0; i < hamburger.size(); i++) {
+for (int i = 0; i < hamburger.size(); i++) {
     Hamburger frites = hamburger.get(i);
-    frites.update();
-    frites.display(i);
+    frites.display();
   }
 
   //verify if there is at least one hamburger on screen
@@ -99,10 +88,11 @@ void packetEvent(CarnivorePacket p) {
 
   String[] parts = p.senderSocket().split(":");
   String codec = p.ascii(); 
-  codecnumber = codec.length();
+  codecnumber += codec.length();
+  println("codeeecumber = ", codecnumber);
   hm.put(parts[0], 1); //tableau d'affichage
-  float energie = map (codecnumber, 0, 800, 0, 20) ;
-
+  constrain(codecnumber, 0, 3000);
+  float energie = map (codecnumber, 0, 3000, 0, 40) ;
 
   ////////////////// CONNEXIONS APPAREILS /////////////////
   for (Map.Entry me : hm.entrySet()) {
@@ -112,9 +102,11 @@ void packetEvent(CarnivorePacket p) {
       appareilsCo++;
     }
   }
+  
+  
   /////////////////////// REQUETES INTERNET /////////////////////
-  if (energie != 0 && oldNumber == appareilsCo) { //avoid connexions packets
-    println(codecnumber);
+  if (energie != 0 && oldNumber == appareilsCo && appareilsCo != 0) { //avoid connexions packets
+    println("coedc " , codecnumber);
     hamburger.add(new Hamburger(random((width/2) - 50, (width / 2) + 50), random((height / 2 ) - 50, (height / 2) + 50), energie));
     openDoor = true;
     timer = millis() + 600; // timer pour l'excitation des particles
@@ -131,19 +123,5 @@ void packetEvent(CarnivorePacket p) {
   println("Nombre d'agents : ", particules.size());
   println("hmSize = ", hm.size());
   println("*****************************************************************");
- appareilsCo = 0; //clear the value
+  appareilsCo = 0; //clear the value
 }
-
-
-/*
-void keyPressed() {
- if (keyCode == TAB) {
- openDoor = false;
- timer = t_stamp + 1;
- }
- if (keyCode == SHIFT) {
- openDoor = true;
- timer = millis() + 600; // timer pour l'excitation des particles
- }
- }
- */

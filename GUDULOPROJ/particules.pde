@@ -13,7 +13,7 @@ class Particle {
   ArrayList<Toile> toiles = new ArrayList();
 
 
-  Particle(int x, int y,int _transparenceLife) {
+  Particle(int x, int y, int _transparenceLife) {
     // particle class should have location, vitesse & acceleration
     location = new PVector(x, y);
     vitesse = new PVector(0, 0);
@@ -37,7 +37,7 @@ class Particle {
     attraction.normalize(); //distance vecteur = 1
     attraction.mult(m);
     maxLines = map(vitesse.mag(), 0, 5, 600, 998); //certes pas placé au mieux, mais j'utilise des variables localespour calculer distance...
-    maxLines = constrain(maxLines,600,998); // utilisé pour contraindre un peu le nombre de ligne tracé si l'agent est lent (et éviter l'impression gros paté)
+    maxLines = constrain(maxLines, 600, 998); // utilisé pour contraindre un peu le nombre de ligne tracé si l'agent est lent (et éviter l'impression gros paté)
     return attraction;
   }
 
@@ -62,7 +62,7 @@ class Particle {
   }
 
 
-  ////////////// RESTER DANS L'ECRAN /////////////////////////////////
+  ///////////////////// RESTER DANS L'ECRAN /////////////////////////////////
   //ensure that the particles remain on screen
   void stayHereBro() {
     PVector testZone = location; // vecteur temporaire pour faire les tests
@@ -87,9 +87,9 @@ class Particle {
   /////////////////////// ZONE CENTRALE //////////////////////////////////
   void degagedela(float _zoneX, float _zoneY) {
     //dégagez ! c'est le blackhole ici !
-    float  trou = dist(location.x,location.y, _zoneX, _zoneY);
+    float  trou = dist(location.x, location.y, _zoneX, _zoneY);
 
-    if (trou < 71 && openDoor == false) { //si ils sont à X distance du centre et qu'il n'y a pas de food,
+    if (trou < 161 && openDoor == false) { //si ils sont à X distance du centre et qu'il n'y a pas de food,
       int dir = (int(random(0, 2)) < 1) ? 1: -1;       //attribut 
       int dir2 = (int(random(0, 2)) < 1) ? 1: -1;       //attribut 2
       numDist = 5000 ; //en augmentant le numérateur du rapport d'attraction, j'augmente sa vitesse de déplcement : l'agent est perturbé car ilse trovue dans "LA ZONE INTERDIIIIITE" --> il peut forcer la condition pour en sortir (plus rapidement au passage) car les déplacements effectués sont plus grands
@@ -127,11 +127,11 @@ class Particle {
   }
 
 
-/////////////////////////// DISCRIMINATION DES FAIBLES /////////////////////////////////////////
+  /////////////////////////// DISCRIMINATION DES FAIBLES /////////////////////////////////////////
 
-void killWeak(int _j){
-  if (life < 5 ) particules.remove(_j) ;
-}
+  void killWeak(int _j) {
+    if (life < 5 ) particules.remove(_j) ;
+  }
 
   /////////////////////////////// TOILE D ARAIGNEE //////////////////////////
 
@@ -142,59 +142,85 @@ void killWeak(int _j){
 
 
     if (toiles.size() >= 1000) {
-     // println(_maxLines);
-      for (int i = 1; i < _maxLines; i++) {
+      // println(_maxLines);
+      for (int i = 1; i < _maxLines; i += 50) {
         //println("toilessize ok");
         Toile t = toiles.get(i);
         //Distance 
         float d = dist(_x, _y, t.posX, t.posY);
         //Probabilité de rencontre
         float p = random(20);
-        if (d <= 25 && p<1) {
+        if (d <= 35 && p<1) {
           //  println("on peut dessiner");
           pushStyle();
           strokeWeight(0.5);
-          stroke(0, transparence);
+          stroke(255, transparence);
           line(_x, _y, t.posX, t.posY);
           popStyle();
         }
       }
     }
   }
-  
-  
-  //////////////////////////////// LIFE AGENTS //////////////////////////////////////////////////////////////
-  
-  float life_agents(){
-      //hunger                      //transparence max value
-  if (frameCount % 5 == 0 && life < 255)   life +=1;
-   return life;
- }
- 
- 
- /////////////////////////////////////// LA FAIM ///////////////////////////////////////////
- // tous les agents ne se jetteront pas sur la cible : seulement ceux qui ont faim ira se ressourcer ! On liste donc la description des changements d'état de faim
-boolean faim(){
-  //convertir en valeur déca pour poser les seuils
-  float seuilLife = map ( life, 0 , 255, 0, 1);
-    if (seuilLife < 0.2 && openDoor == true ) _faim = true ; //si sa jauge de vie faible, et qu'un objet nourriture est apparu, alors le monstre a faim
-   if (seuilLife > 0.8) {
-     degagedela(location.x,location.y); //si il depasse les 0,8 , alors il n'a plus faim et repards (la fonction degage force les monstres a ressortir)
-   _faim = false ;
-   }
-   if (openDoor == false) {
-     degagedela(location.x,location.y);
-     _faim = false ; //pas forcément exact, mais plus simple et ne change rien à la situation : il se fait ejecter, et a la prochaine iteration, si une cible a pop, il passera en mode faim et se jettera dessus
-   }
-   return _faim;
- }  
 
+
+  //////////////////////////////// LIFE AGENTS //////////////////////////////////////////////////////////////
+
+  float life_agents() {
+    //hunger                      //transparence max value
+    if (frameCount % 5 == 0 && life < 255)   life +=1;
+    return life;
+  }
+
+
+  /////////////////////////////////////// LA FAIM ///////////////////////////////////////////
+  // tous les agents ne se jetteront pas sur la cible : seulement ceux qui ont faim ira se ressourcer ! On liste donc la description des changements d'état de faim
+  boolean faim() {
+    //convertir en valeur déca pour poser les seuils
+    float seuilLife = map ( life, 0, 255, 0, 1);
+    if (seuilLife < 0.2 && openDoor == true ) _faim = true ; //si sa jauge de vie faible, et qu'un objet nourriture est apparu, alors le monstre a faim
+    if (seuilLife > 0.8) {
+      degagedela(location.x, location.y); //si il depasse les 0,8 , alors il n'a plus faim et repards (la fonction degage force les monstres a ressortir)
+      _faim = false ;
+    }
+    if (openDoor == false) {
+      degagedela(location.x, location.y);
+      _faim = false ; //pas forcément exact, mais plus simple et ne change rien à la situation : il se fait ejecter, et a la prochaine iteration, si une cible a pop, il passera en mode faim et se jettera dessus
+    }
+    return _faim;
+  }  
+
+
+  ////////////////////////// MONSTRES QUI SE DIRIGENT VERS LEUR REPAS //////////////////////////
+  void OnALaDalle(float _x, float _y) {
+    if (openDoor == true) {
+      numDist = 10000;
+      float cibleProche = width;
+      float xproche = width / 2;
+      float yproche = height / 2;
+      for (int i = 0; i < hamburger.size(); i ++) {
+        Hamburger sandwich = hamburger.get(i) ;
+        float x = sandwich.posX;
+        float y = sandwich.posY;
+        float cible = dist(x, y, _x, _y);
+
+        if (cible < cibleProche) {  //déterminer la cible la plus proche 
+          cibleProche = cible ;
+          xproche = x;
+          yproche = y;
+        }
+      }
+      
+      target = new PVector(xproche, yproche); //vecteur determinant la pos de la cible la plus proche
+       xT = target.x;
+       yT = target.y;
+    }
+  }
   /////////////////// UPDATE ///////////////////////////////////////////////////////////
   void update() {  
     numDist = 400;
     for (int i =0; i < particules.size(); i ++) {
-      xoff[i] += random(0.08);
-      yoff[i] += random(0.08);
+      xoff[i] += random(0.18);
+      yoff[i] += random(0.18);
       //float bou = map (noise(xoff[i],i*5,50), 0, 1, -5, 5);
       //float lou =  map (noise(yoff[i],i*23,15), 0, 1, -5, 5);
       // println(bou,"  ",lou);
@@ -204,42 +230,47 @@ boolean faim(){
       yT = noise (yoff[i]) * height ;
     }
 
-    //test en attendant : lorsqu'un nouvel objet apprait, diriger les points vers le centre
-    if (openDoor == true) {
-      numDist = 10000;
-      target = new PVector(width/2, height/2);
-      for (int i = 0; i < particules.size(); i ++) {
-        xT = target.x; //keep them on the central target
-        yT = target.y;
-      }
-    }   
-
-    applyForces();
+    OnALaDalle(location.x, location.y); // agents qui se jettent sur la bouffe : mise a jour des targets
+    applyForces(); // on applique les forces pour calculer la vitesse
 
     //vérification que l'on est pas hors champ ou dans la zone 
     if (openDoor == false) stayHereBro();
-    location.add(vitesse); // vecteur position = dérivée de la vitesse
+
+    location.add(vitesse); // vecteur vitesse ajouté à la position pour avoir la nouvelle position
 
     if (openDoor == true) {    //comportement grésillant lorsque les agents foncent vers la cible
-      int posneg = (int(random(0, 2)) < 1) ? 1: -1;
+      int posneg = (int(random(0, 2)) < 1) ? 1: -1; // on récupère donc les valeurs de position pour les "secouer" u peu sur le chemin
       location.x = location.x + (posneg * random(3));
       location.y = location.y + (posneg * random(3));
     }
 
-    acceleration.mult(0); //clear acceleration each frame
+    acceleration.mult(0); // clear l'acceleration
 
     //enregistrer les anciennes positions
     Toile oldPos = new Toile(location.x, location.y);
     toiles.add(oldPos);
-    
-    //mettre à jour sa jauge de vie & faim
-   // life_agents();
-   //faim(location.x, location.y);
-   
 
+    //mettre à jour sa jauge de vie & faim
+    life_agents();
+    faim();
   }
 
+  //////////////////////////// SE NOURRIR ////////////////////////////
+  void nourrir(float _x, float _y) {
+    for (int i = 0; i < hamburger.size(); i ++) {
+      Hamburger sandwich = hamburger.get(i) ;
+      float x = sandwich.posX;
+      float y = sandwich.posY;
+      float nrj = sandwich.kcal;
+      float cible = dist(x, y, _x, _y);
 
+      if ( cible < 10) {
+        hamburger.remove(i);//cible mangée
+        life += nrj; // regagner de la vie en absorbant l'energie de la cible
+      }
+    }
+  }
+  
   /////////////////////////////// DISPLAY ////////////////////////////////
   PVector display(int _index) {
     //fill(0, 255, 0);
@@ -247,10 +278,13 @@ boolean faim(){
 
     toileAraignee(location.x, location.y, maxLines, life);
     noFill();
-    ellipse(width/2, height/2, 100, 100);
+    stroke(255);
+    ellipse(width/2, height/2, 300, 300);
 
     killCowards(_index);
     killWeak(_index);
+    nourrir(location.x, location.y);
+
     return location;
   }
 }
