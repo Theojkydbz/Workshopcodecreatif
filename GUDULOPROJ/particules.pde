@@ -173,7 +173,7 @@ class Particle {
 
   float life_agents() {
     //hunger                      //transparence max value
-    if (frameCount % 5 == 0 && life > 5 && particules.size() > 3)   life -= 0.5; //à intervalles réguliers, si la vie n'est pas déjà à 5 (suppression), et si il y a plus que les 3 agents de base (qui attirent le visiteur)
+    if (frameCount % 5 == 0 && life > 5 && particules.size() > 3)   life -= 0.4; //à intervalles réguliers, si la vie n'est pas déjà à 5 (suppression), et si il y a plus que les 3 agents de base (qui attirent le visiteur)
     return life;
   }
 
@@ -183,7 +183,7 @@ class Particle {
   boolean faim() {
     //convertir en valeur déca pour poser les seuils
     float seuilLife = map ( life, 0, 255, 0, 1);
-    if (seuilLife < 0.2 && openDoor == true ) _faim = true ; //si sa jauge de vie faible, et qu'un objet nourriture est apparu, alors le monstre a faim
+    if (seuilLife < 0.3 && openDoor == true ) _faim = true ; //si sa jauge de vie faible, et qu'un objet nourriture est apparu, alors le monstre a faim
     if (seuilLife > 0.8) {
       degagedela(location.x, location.y); //si il depasse les 0,8 , alors il n'a plus faim et repart (la fonction degage force les monstres a ressortir)
       _faim = false ;

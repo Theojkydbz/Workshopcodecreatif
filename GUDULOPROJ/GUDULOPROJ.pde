@@ -13,7 +13,19 @@ import org.rsg.lib.Log;
 
 Minim minim;
 AudioPlayer Pop;
+AudioPlayer pophard;
+AudioPlayer pophard1;
+AudioPlayer pophard2;
+AudioPlayer pophard3;
+AudioPlayer pophard4;
+AudioPlayer pophard5;
+AudioPlayer pophard6;
+AudioPlayer pophard7;
+AudioPlayer pophard8;
+AudioPlayer pophard9;
 AudioPlayer Ambiance;
+AudioPlayer soundPop ;
+
 
 float timePop ;
 float soundDuration;
@@ -28,9 +40,6 @@ int codecnumber=0;
 HashMap<String, Integer> hm = new HashMap<String, Integer>();
 ////////////////  END CARNIVORE /////////////////////
 
-
-
-
 /////// DEBUG SLIDERS ////////
 
 import controlP5.*;
@@ -42,9 +51,6 @@ float sliderValueY = 1.07;
 float sliderMinX = 1.06;
 float sliderMinY = 1.39;
 boolean displaySliders  = false ;
-
-
-
 
 float bestcodec = 0 ;
 //////////// particules ///////////
@@ -59,12 +65,14 @@ float[] y = new float[nb];
 boolean openDoor = false;
 float timer, t_stamp, t_life; //timer = excitation et décompte de la jauge de vie des particules : t_agglo = pour agglomérer la taille des codecs / sec 
 int Agents ; //nb d'agents
-PVector manger;
 
 
 ///////////////////// BACKGROUND :///////////////
 ArrayList<back> Back;
+ArrayList<backvoid> Backvoid; // à choisir entre les trois
+ArrayList<backvoidreverse> Backvoidrev;
 circlezone Circlezone = new circlezone(); 
+boolean trounoir, troureverse = false ;
 
 /////////////////////// REQUEST POP //////////////////////
 float noisoff=0;
@@ -88,8 +96,9 @@ void setup() {
   background(255);
   smooth();
   stroke(0, 64);
-  manger = new PVector(width/2, height/2);
   Back = new ArrayList<back>(1000);
+  Backvoid = new ArrayList<backvoid>();
+  Backvoidrev = new ArrayList<backvoidreverse>();
   particules = new ArrayList();
   hamburger = new ArrayList();
 
@@ -128,7 +137,15 @@ void setup() {
     Back.add(new back());
   }
 
-  Pop = minim.loadFile("POPCOURT.wav");
+  pophard = minim.loadFile("pophard.wav");
+  pophard2 = minim.loadFile("pophard2.wav");
+  pophard3 = minim.loadFile("pophard3.wav");
+  pophard4 = minim.loadFile("pophard4.wav");
+  pophard5 = minim.loadFile("pophard5.wav");
+  pophard6 = minim.loadFile("pophard6.wav");
+  pophard7 = minim.loadFile("pophard7.wav");
+  pophard8 = minim.loadFile("pophard8.wav");
+  pophard9 = minim.loadFile("pophard9.wav");
   Ambiance = minim.loadFile("AMBIANCE3.wav");
   Ambiance.loop();
 
@@ -147,6 +164,8 @@ void draw() {
   popMatrix();
 
   maj();
+  if (trounoir) majvoid();
+  if (troureverse) majvoidrev();
 
   //si un objet apparait (et donc que le centre est accessible), je lance un timer pour les exciter avant qu'ils se lancent dans l'agrerssion du pauvre petit paquet qui a pop
   if (openDoor == true ) t_stamp = millis();
@@ -165,7 +184,7 @@ void draw() {
     particucule.display(i);
   }
 
-  if ( Pop.position() < Pop.length() * random(0.5) && Pop.isPlaying()) {
+  if ( pophard.position() < pophard.length() * random(0.5) && pophard.isPlaying()) {
     Circlezone.updater();
   } else Circlezone.reset();
 
@@ -202,12 +221,12 @@ void packetEvent(CarnivorePacket p) {
 
 
   /////////////////////// REQUETES INTERNET /////////////////////
-  if (codecnumber > 200 && oldNumber == appareilsCo && appareilsCo != 0) { // 1) pour eviter les requetes passives en tache de fond, 2) eviter les requetes de connexion de nouveaux appareils 
+  if (codecnumber > 170 && oldNumber == appareilsCo && appareilsCo != 0) { // 1) pour eviter les requetes passives en tache de fond, 2) eviter les requetes de connexion de nouveaux appareils 
 
     //println("coedc " , codecnumber);
     newPos(0, 100);
     hamburger.add(new Hamburger(initPos.x, initPos.y, energie)); //nouveau truc à manger
-    playSound(Pop);
+    playSound(pophard);
     openDoor = true;
     timer = millis() + 800; // timer pour l'excitation des particles
   }
@@ -231,6 +250,8 @@ void packetEvent(CarnivorePacket p) {
   appareilsCo = 0; //clear the value
 }
 
+
+///////// BACKGROUND FUNCTIONS ///////////
 void maj() {
   for (int u = 0; u < Back.size(); u++) {
     back maj = Back.get(u);
@@ -238,6 +259,51 @@ void maj() {
     maj.display();
   }
 }
+
+void majvoid() {
+  println("lajvoid");
+  float chancevoid=random(0, 1);
+  if (chancevoid > 0.8) {
+    Backvoid.add(new backvoid());
+  }
+  for (int j = 0; j < Backvoid.size(); j++) {
+    backvoid majvoid = Backvoid.get(j);
+    majvoid.update(j);
+    majvoid.display();
+  }
+}
+
+void majvoidrev() {
+  float chancevoidrev=random(0, 1);
+  if (chancevoidrev>0.8) {
+    Backvoidrev.add(new backvoidreverse());
+  }
+  for (int k=0; k<Backvoidrev.size(); k++) {
+    backvoidreverse majvoidrev = Backvoidrev.get(k);
+    majvoidrev.update(k);
+    majvoidrev.display();
+  }
+}
+
+//////////// USEFULL FUNCTIONS /////////
+
+AudioPlayer choosePopSound() { 
+  int lotterie = int(random(9));
+  if ( lotterie == 9) lotterie = 8; //à ne pas refaire à la maison !
+  
+  if (lotterie == 0) soundPop = pophard;
+  if (lotterie == 1) soundPop = pophard8;
+  if (lotterie == 2) soundPop = pophard2;
+  if (lotterie == 3) soundPop = pophard3;
+  if (lotterie == 4) soundPop = pophard4;
+  if (lotterie == 5) soundPop = pophard5;
+  if (lotterie == 6) soundPop = pophard6;
+  if (lotterie == 7) soundPop = pophard7;
+  if (lotterie == 8) soundPop = pophard9;
+  
+  return soundPop ; 
+}
+
 
 void playSound(AudioPlayer sound) {
   if (sound.isPlaying() == true) {
@@ -265,12 +331,28 @@ PVector newPos(int r1, int r2) {
   return initPos;
 }
 
+
+
+/////////// DEBOGUAGE & TESTS ////////////////////
 void keyPressed() {
-  if (key == SHIFT) {
+  if (keyCode == SHIFT) {
     newPos(140, 200);
     particules.add(new Particle(initPos.x, initPos.y, 255));
     println("add new particule");
   }
 
-  if (key == TAB) particules.remove(0);
+  if (keyCode == TAB && particules.size() > 3) particules.remove(random(particules.size()));
+
+  if (keyCode == CONTROL) {
+    trounoir = true;
+    troureverse = false;
+  }
+  if (keyCode == 66) {
+    troureverse =true ; 
+    trounoir = false ;
+  }
+  if (keyCode == 67) {
+    troureverse = false ;
+    trounoir = false ;
+  }
 }
