@@ -18,6 +18,7 @@ AudioPlayer Ambiance;
 float timePop ;
 float soundDuration;
 PGraphics pgPop;
+PVector initPos;
 
 CarnivoreP5 c;
 String testPrefix = "172";
@@ -94,39 +95,36 @@ void setup() {
 
 
   ///////////SLIDER///////////
- /* cp5 = new ControlP5(this);
-
-  // add a horizontal sliders, the value of this slider will be linked
-  // to variable 'sliderValue' 
-  cp5.addSlider("sliderValue")
-    .setPosition(100, 50)
-    .setRange(-0.7878, 0.79)
-    ;
-  cp5.addSlider("sliderValueY")
-    .setPosition(100, 100)
-    .setRange(1, 1.07)
-    ;
-  cp5.addSlider("sliderMinX")
-    .setPosition(100, 150)
-    .setRange(0.5, 1.06)
-    ;
-  cp5.addSlider("sliderMinY")
-    .setPosition(100, 200)
-    .setRange(0.5, 1.39)
-    ;
-*/
+  /* cp5 = new ControlP5(this);
+   
+   // add a horizontal sliders, the value of this slider will be linked
+   // to variable 'sliderValue' 
+   cp5.addSlider("sliderValue")
+   .setPosition(100, 50)
+   .setRange(-0.7878, 0.79)
+   ;
+   cp5.addSlider("sliderValueY")
+   .setPosition(100, 100)
+   .setRange(1, 1.07)
+   ;
+   cp5.addSlider("sliderMinX")
+   .setPosition(100, 150)
+   .setRange(0.5, 1.06)
+   ;
+   cp5.addSlider("sliderMinY")
+   .setPosition(100, 200)
+   .setRange(0.5, 1.39)
+   ;
+   */
 
   /////// INIT AGENTS //////
   for (int i = 0; i < 3; i++) {
-    float angle = random(TWO_PI);
-    float r = random(140, 200);
-    float x = width/2 + r * cos(angle);
-    float y = height/2 + r * sin(angle);
-    particules.add(new Particle(x, y, 255));
+    newPos(140, 200);
+    particules.add(new Particle(initPos.x, initPos.y, 255));
   }
 
 
-  for (int i = 0 ; i < 1000 ; i++) {
+  for (int i = 0; i < 1000; i++) {
     Back.add(new back());
   }
 
@@ -192,7 +190,7 @@ void packetEvent(CarnivorePacket p) {
   constrain(codecnumber, 0, 300);
   energie = map (codecnumber, 200, 2000, 5, 25) ;  //8000 plus grande valeur observée sur plsueirus longueds observations
   if (energie > 25) energie = 25 ;
-  
+
   ////////////////// CONNEXIONS APPAREILS /////////////////
   for (Map.Entry me : hm.entrySet()) {
     String value = me.getKey().toString();
@@ -205,13 +203,10 @@ void packetEvent(CarnivorePacket p) {
 
   /////////////////////// REQUETES INTERNET /////////////////////
   if (codecnumber > 200 && oldNumber == appareilsCo && appareilsCo != 0) { // 1) pour eviter les requetes passives en tache de fond, 2) eviter les requetes de connexion de nouveaux appareils 
-    
+
     //println("coedc " , codecnumber);
-    float a = random(-PI, PI);
-    float r = random(100);
-    float posX = width/2 + r * cos(a);
-    float posY = height/2 + r * sin(a);
-    hamburger.add(new Hamburger(posX, posY, energie)); //nouveau truc à manger
+    newPos(0, 100);
+    hamburger.add(new Hamburger(initPos.x, initPos.y, energie)); //nouveau truc à manger
     playSound(Pop);
     openDoor = true;
     timer = millis() + 800; // timer pour l'excitation des particles
@@ -225,7 +220,8 @@ void packetEvent(CarnivorePacket p) {
   if (oldNumber < appareilsCo) {
     println("Nouvelle connexion !");
     oldNumber = appareilsCo;
-    particules.add(new Particle(int(random(0, width)), int(random(0, height)), 255));
+    newPos(140, 200);
+    particules.add(new Particle(initPos.x, initPos.y, 255));
   }
 
   println("Appareils connectés : ", appareilsCo);
@@ -236,7 +232,7 @@ void packetEvent(CarnivorePacket p) {
 }
 
 void maj() {
-  for (int u=0; u< Back.size(); u++) {
+  for (int u = 0; u < Back.size(); u++) {
     back maj = Back.get(u);
     maj.update();
     maj.display();
@@ -259,9 +255,22 @@ void slider(float thevalue) {
   radiusG = thevalue ;
 }
 
+PVector newPos(int r1, int r2) {
+  float angle = random(TWO_PI);
+  float r = random(r1, r2);
+  float x = width/2 + r * cos(angle);
+  float y = height/2 + r * sin(angle);
+  initPos = new PVector(x, y);
 
-void keyPressed(){
+  return initPos;
+}
+
+void keyPressed() {
   if (key == SHIFT) {
-    
+    newPos(140, 200);
+    particules.add(new Particle(initPos.x, initPos.y, 255));
+    println("add new particule");
   }
+
+  if (key == TAB) particules.remove(0);
 }
