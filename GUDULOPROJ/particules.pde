@@ -69,8 +69,7 @@ class Particle {
     testVect.add(vitesse);
     int dir = (int(random(0, 2)) < 1) ? 1: -1;     //set rebound direction
     float donuts = dist(testVect.x, testVect.y, width /2, height /2);
-
-    if (donuts > 400) {
+    if (donuts > 400 * 0.79) {
       vitesse.x = - vitesse.x * 2; //rebondir sur la paroi,
       vitesse.y = dir * vitesse.y; //dans n'importe quelle direction
       //println("sortie X");
@@ -92,11 +91,11 @@ class Particle {
       applyForces();
 
       //tracés fantômes ; d'où sortent-ils ?
-    //  pushStyle();
-     // fill(255, 0, 0);
-     // noStroke();
-     // ellipse(_zoneX, _zoneY, 5, 5);
-     // popStyle();
+      //  pushStyle();
+      // fill(255, 0, 0);
+      // noStroke();
+      // ellipse(_zoneX, _zoneY, 5, 5);
+      // popStyle();
 
       // println("trou = ", trou);
       // println("////////////", _zoneX, " ////// zoneY = ", _zoneY);
@@ -107,16 +106,22 @@ class Particle {
   /////////////////// COWARDS ////////////////////////////////////// 
   //sometimes, some of them are des petits coquins qui passent à travers les mailles du filet, et ici, c'est une dictature ! Tout le monde reste dans l'octogone .
   //donc les lâches fuyant la sainte mère patrie seront éliminés sans regrets
-  void killCowards(int index) {
-    if (location.x < 0 || location.x > width || location.y < 0 || location.y > height) {
-      //reset noise values to respawn it in the screen
-      xoff[index] = 0;
-      yoff[index] = 0;
-      particules.remove(index); // pendez-le ! sus au traitre !
-      particules.add(new Particle(int(random(0, width)), int(random(0, height)), 255)) ; // oh ! une nouvelle tete dans la population !
-      
-      applyForces();
-    
+  void killCowards() {
+    for (int i = 0; i < particules.size(); i ++) {
+      float fuite = dist( location.x, location.y, width/2, height/2 );
+      if (fuite > 400) {
+        //reset noise values to respawn it in the screen
+        xoff[i] = 0;
+        yoff[i] = 0;
+        particules.remove(i); // pendez-le ! sus au traitre !
+        float angle = random(TWO_PI);
+        float r = random(140, 200);
+        float x = width/2 + r * cos(angle);
+        float y = height/2 + r * sin(angle);
+        particules.add(new Particle(x, y, 255)); // oh ! une nouvelle tete dans la population !
+
+        applyForces();
+      }
     }
   }
 
@@ -126,13 +131,13 @@ class Particle {
   void killWeak(int _j) {
     if (life < 6  && particules.size() > 3 ) particules.remove(_j) ;
     //redonner de la vie aux trois restants trop faibles :
-    if ( particules.size() == 3){
-     for ( int i = 0 ; i < particules.size() ; i++){ //verifier la vie / transparence de chacun des trois derniers, et la réaugmenter progressivment si trop faible
-       Particle part = particules.get(i);
-       if ( part.life < 150) {
-         life = lerp(life,255,0.8);
-       }
-     }
+    if ( particules.size() == 3) {
+      for ( int i = 0; i < particules.size(); i++) { //verifier la vie / transparence de chacun des trois derniers, et la réaugmenter progressivment si trop faible
+        Particle part = particules.get(i);
+        if ( part.life < 150) {
+          life = lerp(life, 255, 0.8);
+        }
+      }
     }
   }
 
@@ -154,7 +159,7 @@ class Particle {
         if (d <= 40 ) {
           //  println("on peut dessiner");
           pushStyle();
-          strokeWeight(random(0.5,1.2));
+          strokeWeight(random(0.5, 1.2));
           stroke(255, transparence);
           line(_x, _y, t.posX, t.posY);
           popStyle();
@@ -168,7 +173,7 @@ class Particle {
 
   float life_agents() {
     //hunger                      //transparence max value
-    if (frameCount % 5 == 0 && life > 5 && particules.size() > 3)   life -= 1; //à intervalles réguliers, si la vie n'est pas déjà à 5 (suppression), et si il y a plus que les 3 agents de base (qui attirent le visiteur)
+    if (frameCount % 5 == 0 && life > 5 && particules.size() > 3)   life -= 0.5; //à intervalles réguliers, si la vie n'est pas déjà à 5 (suppression), et si il y a plus que les 3 agents de base (qui attirent le visiteur)
     return life;
   }
 
@@ -210,10 +215,10 @@ class Particle {
           yproche = y;
         }
       }
-      
+
       target = new PVector(xproche, yproche); //vecteur determinant la pos de la cible la plus proche
-       xT = target.x;
-       yT = target.y;
+      xT = target.x;
+      yT = target.y;
     }
   }
   /////////////////// UPDATE ///////////////////////////////////////////////////////////
@@ -254,7 +259,9 @@ class Particle {
     //mettre à jour sa jauge de vie & faim
     life_agents();
     faim();
-    //println("vie = ", life);
+
+    //tuons les si ils insistent !ç 
+    killCowards();
   }
 
   //////////////////////////// SE NOURRIR ////////////////////////////
@@ -272,18 +279,18 @@ class Particle {
       }
     }
   }
-  
+
   /////////////////////////////// DISPLAY ////////////////////////////////
   PVector display(int _index) {
     pushStyle();
     fill(255, life);
-    ellipse(location.x, location.y, 5, 5);
+    noStroke();
+    ellipse(location.x, location.y, 3, 3);
     popStyle();
 
     toileAraignee(location.x, location.y, maxLines, life);
 
 
-    killCowards(_index);
     killWeak(_index);
     nourrir(location.x, location.y);
 

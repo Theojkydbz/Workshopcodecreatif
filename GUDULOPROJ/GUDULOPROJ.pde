@@ -27,6 +27,24 @@ int codecnumber=0;
 HashMap<String, Integer> hm = new HashMap<String, Integer>();
 ////////////////  END CARNIVORE /////////////////////
 
+
+
+
+/////// DEBUG SLIDERS ////////
+
+import controlP5.*;
+
+ControlP5 cp5;
+float radiusG;
+float sliderValue = 0.79;
+float sliderValueY = 1.07;
+float sliderMinX = 1.06;
+float sliderMinY = 1.39;
+boolean displaySliders  = false ;
+
+
+
+
 float bestcodec = 0 ;
 //////////// particules ///////////
 int nb =10000;
@@ -54,17 +72,17 @@ popper Popper1 = new popper();
 int formResolution = 6;
 boolean isactive = false;
 float distortionFactor = 1;
-float initRadius;
+float Radius = 30;
 float centerX, centerY;
 float[] xstart = new float[formResolution];
 float[] ystart = new float[formResolution];
 float[] xbeg = new float[formResolution];
 float[] ybeg = new float[formResolution];
-
+float energie ;
 
 void setup() {
   fullScreen(P2D);
-  pgPop = createGraphics(width,height);
+  pgPop = createGraphics(width, height);
   minim = new Minim(this);
   background(255);
   smooth();
@@ -75,25 +93,40 @@ void setup() {
   hamburger = new ArrayList();
 
 
-/////// INIT AGENTS //////
+  ///////////SLIDER///////////
+ /* cp5 = new ControlP5(this);
+
+  // add a horizontal sliders, the value of this slider will be linked
+  // to variable 'sliderValue' 
+  cp5.addSlider("sliderValue")
+    .setPosition(100, 50)
+    .setRange(-0.7878, 0.79)
+    ;
+  cp5.addSlider("sliderValueY")
+    .setPosition(100, 100)
+    .setRange(1, 1.07)
+    ;
+  cp5.addSlider("sliderMinX")
+    .setPosition(100, 150)
+    .setRange(0.5, 1.06)
+    ;
+  cp5.addSlider("sliderMinY")
+    .setPosition(100, 200)
+    .setRange(0.5, 1.39)
+    ;
+*/
+
+  /////// INIT AGENTS //////
   for (int i = 0; i < 3; i++) {
     float angle = random(TWO_PI);
     float r = random(140, 200);
-    float x = width/2 + r*cos(angle);
-    float y = height/2 + r*sin(angle);
-    particules.add(new Particle(x,y, 255));
+    float x = width/2 + r * cos(angle);
+    float y = height/2 + r * sin(angle);
+    particules.add(new Particle(x, y, 255));
   }
 
-////// INIT POPPERS //////
-  float angle = radians(360/float(formResolution));
-    for (int i=0; i<formResolution; i++) {
-      xbeg[i] = cos(angle*i) * initRadius;
-      ybeg[i] = sin(angle*i) * initRadius;  
-      xstart[i] =xbeg[i];
-      ystart[i] =ybeg[i];
-    }
-      
-  for (int i=0; i<1000; i++) {
+
+  for (int i = 0 ; i < 1000 ; i++) {
     Back.add(new back());
   }
 
@@ -108,6 +141,7 @@ void setup() {
   pixelDensity(1);
 }
 
+
 void draw() {
   pushMatrix();
   fill(0, 10);
@@ -116,32 +150,32 @@ void draw() {
 
   maj();
 
-//si un objet apparait (et donc que le centre est accessible), je lance un timer pour les exciter avant qu'ils se lancent dans l'agrerssion du pauvre petit paquet qui a pop
-if (openDoor == true ) t_stamp = millis();
-if ( frameCount % 60 == 0) codecnumber = 0 ; // reset la quantité de codecs toutes les secondes
+  //si un objet apparait (et donc que le centre est accessible), je lance un timer pour les exciter avant qu'ils se lancent dans l'agrerssion du pauvre petit paquet qui a pop
+  if (openDoor == true ) t_stamp = millis();
+  if ( frameCount % 20 == 0) codecnumber = 0 ; // reset la quantité de codecs 
 
 
-for (int i = 0; i < hamburger.size(); i++) {
-  Hamburger frites = hamburger.get(i);
-  frites.display();
-}
+  for (int i = 0; i < hamburger.size(); i++) {
+    Hamburger frites = hamburger.get(i);
+    frites.hambStyle();
+  }
 
 
-for (int i = 0; i < particules.size(); i++) {
-  Particle particucule = particules.get(i);
-  particucule.update();
-  particucule.display(i);
-}
+  for (int i = 0; i < particules.size(); i++) {
+    Particle particucule = particules.get(i);
+    particucule.update();
+    particucule.display(i);
+  }
 
-  if ( Pop.position() < Pop.length()&& Pop.isPlaying()) {
-    Circlezone.updater(); 
+  if ( Pop.position() < Pop.length() * random(0.5) && Pop.isPlaying()) {
+    Circlezone.updater();
   } else Circlezone.reset();
 
-//verify if there is at least one hamburger on screen
-if (hamburger.size() == 0) { //if there isn't, so close access to center
-  openDoor = false;
-  timer = t_stamp + 1;
-}
+  //verify if there is at least one hamburger on screen
+  if (hamburger.size() == 0) { //if there isn't, so close access to center
+    openDoor = false;
+    timer = t_stamp + 1;
+  }
 }
 
 
@@ -151,12 +185,14 @@ void packetEvent(CarnivorePacket p) {
 
   String[] parts = p.senderSocket().split(":");
   String codec = p.ascii(); 
+  hm.put(parts[0], 1); //tableau d'affichage
   codecnumber += codec.length();
   println("codeeecumber = ", codecnumber);
-  hm.put(parts[0], 1); //tableau d'affichage
-  constrain(codecnumber, 0, 3000);
-  float energie = map (codecnumber, 0, 13135, 0, 40) ;  //13135 plus grande valeur observée sur plsueirus longueds observations
 
+  constrain(codecnumber, 0, 300);
+  energie = map (codecnumber, 200, 2000, 5, 25) ;  //8000 plus grande valeur observée sur plsueirus longueds observations
+  if (energie > 25) energie = 25 ;
+  
   ////////////////// CONNEXIONS APPAREILS /////////////////
   for (Map.Entry me : hm.entrySet()) {
     String value = me.getKey().toString();
@@ -168,18 +204,23 @@ void packetEvent(CarnivorePacket p) {
 
 
   /////////////////////// REQUETES INTERNET /////////////////////
-  if (energie != 0 && oldNumber == appareilsCo && appareilsCo != 0) { //avoid connexions packets
+  if (codecnumber > 200 && oldNumber == appareilsCo && appareilsCo != 0) { // 1) pour eviter les requetes passives en tache de fond, 2) eviter les requetes de connexion de nouveaux appareils 
+    
     //println("coedc " , codecnumber);
-    hamburger.add(new Hamburger(random((width/2) - 50, (width / 2) + 50), random((height / 2 ) - 50, (height / 2) + 50), energie)); //nouveau truc à manger
+    float a = random(-PI, PI);
+    float r = random(100);
+    float posX = width/2 + r * cos(a);
+    float posY = height/2 + r * sin(a);
+    hamburger.add(new Hamburger(posX, posY, energie)); //nouveau truc à manger
     playSound(Pop);
     openDoor = true;
-    timer = millis() + 600; // timer pour l'excitation des particles
+    timer = millis() + 800; // timer pour l'excitation des particles
   }
 
   if (bestcodec < codecnumber) bestcodec = codecnumber ; 
   println("best codec = ", bestcodec);
 
- 
+
   /////////////// NOUVELLE CONNEXION ////////////////////
   if (oldNumber < appareilsCo) {
     println("Nouvelle connexion !");
@@ -210,5 +251,17 @@ void playSound(AudioPlayer sound) {
   } else {
     sound.rewind();
     sound.play();
+  }
+}
+
+
+void slider(float thevalue) {
+  radiusG = thevalue ;
+}
+
+
+void keyPressed(){
+  if (key == SHIFT) {
+    
   }
 }
