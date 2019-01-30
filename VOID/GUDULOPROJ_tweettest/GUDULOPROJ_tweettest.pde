@@ -89,7 +89,11 @@ float energie ;
 ArrayList<Tweetos> tweets = new ArrayList();
 Twitter twitter ;
 Query query;
+int frameCounter = 0 ; 
+int newTweet = 0;
 
+int tweetCounter = 0;
+int oldTweet = 0 ;
 
 void setup() {
   fullScreen(P2D);
@@ -113,7 +117,7 @@ void setup() {
   twitter = new TwitterFactory(cb.build()).getInstance();
   query = new Query("lecolededesign");
 
-  thread("queryThread"); //execution en parallèle
+
   ///////////SLIDER///////////
   /* cp5 = new ControlP5(this);
    
@@ -143,7 +147,6 @@ void setup() {
     particules.add(new Particle(initPos.x, initPos.y, 255));
   }
 
-
   for (int i = 0; i < 1000; i++) {
     Back.add(new back());
   }
@@ -166,6 +169,10 @@ void setup() {
 
 
 void draw() {
+
+  thread("queryThread"); //execution en parallèle
+  frameCounter ++ ;
+
   pushMatrix();
   fill(0, 10);
   rect(0, 0, width, height);
@@ -180,22 +187,30 @@ void draw() {
     particucule.update();
     particucule.display(i);
   }
- 
+  println(tweetCounter);
+  println("new = ", newTweet, "    old = ", oldTweet);
   ///// SECOND STEP : DISPLAY DATAS ///////
-  if (frameCount % 200 == 0) {
-    for (int i = 0 ; i < tweets.size() ; i ++){
-      Tweetos t = tweets.get(i);
-      String username = t.name;
-      String content = t.msg;
-      float energie = t.kcal;
-      newPos(0, 100);
-      hamburger.add(new Hamburger(initPos.x, initPos.y, energie, username, content)); //nouveau truc à manger
-      t.update(i);
-      t.display();
-      playSound(pophard);
-      openDoor = true;
-      timer = millis() + 800; // timer pour l'excitation des particles
-  }
+  if (frameCounter % 20 == 0 ) {
+    if (tweetCounter < tweets.size() - 1) { // result : 0 < -1 lorsqu'aucun tweet n'a encore été chargé
+      if (newTweet > oldTweet) {
+
+        if (frameCounter > 950) {
+
+
+          Tweetos t = tweets.get(tweetCounter);
+          String username = t.name;
+          String content = t.msg;
+          float energie = t.kcal;
+          newPos(0, 100);
+          hamburger.add(new Hamburger(initPos.x, initPos.y, energie, username, content)); //nouveau truc à manger
+          t.update(tweetCounter);
+          t.display();
+          playSound(pophard);
+          openDoor = true;
+          timer = millis() + 800; // timer pour l'excitation des particles
+        }
+      }
+    }
   }
   //si un objet apparait (et donc que le centre est accessible), je lance un timer pour les exciter avant qu'ils se lancent dans l'agrerssion du pauvre petit paquet qui a pop
   if (openDoor == true ) t_stamp = millis();
@@ -203,11 +218,12 @@ void draw() {
   for (int i = 0; i < hamburger.size(); i++) {
     Hamburger frites = hamburger.get(i);
     frites.hambStyle();
+    /*
     for (int j = 0; j < tweets.size(); j++) {
-      Tweetos t = tweets.get(j);
-      t.update(j);
-      t.display();
-    }
+     Tweetos t = tweets.get(j);
+     t.update(j);
+     t.display();
+     }*/
   }
 
 
@@ -225,27 +241,27 @@ void draw() {
 }
 
 
-void queryThread(){
-  if (frameCount % 900 == 0){
+void queryThread() {
+
+
+  if (frameCounter % 900 == 0) {
     ///// FIRST STEP  : SEARCH //////
     try {
       QueryResult result = twitter.search(query);
       //  println(result);
       for (Status status : result.getTweets()) {
-         println("@", status.getUser().getScreenName());
+        println("@", status.getUser().getScreenName());
         //ranger les id et les tweets dans l'arrayList
         println("Tweet : ", status.getText());
         String user = (String) status.getUser().getScreenName();
         String tweet = (String) status.getText();
-
-
         energie = map (user.length(), 0, 40, 5, 30) ;  //8000 plus grande valeur observée sur plsueirus longueds observations
         if (energie > 25) energie = 25 ;
         Tweetos tw = new Tweetos(user, tweet, energie, width/2);
         tweets.add(tw);
       }
+      newTweet = tweets.size();
     }
-
     catch (TwitterException te) {
       println("Couldn't connect: " + te);
     };
