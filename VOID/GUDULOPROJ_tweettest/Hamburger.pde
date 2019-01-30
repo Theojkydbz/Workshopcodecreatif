@@ -1,13 +1,16 @@
 class Hamburger {
-  float posX, posY, kcal ;
+  float posX, posY, kcal, postxt ;
+  String msg, username;
 
-  Hamburger(float xpos, float ypos, float calories) {
+  Hamburger(float xpos, float ypos, float calories, String _user, String _msg) {
     this.posX = xpos;
     this.posY = ypos;
     this.kcal = calories;
+    this.username = _user;
+    this.msg = _msg ;
   }
-  
-  void hambStyle(){
+
+  void hambStyle() {
     pushStyle();
     fill(255);
     noStroke();
@@ -15,8 +18,14 @@ class Hamburger {
     //float y = random(height / 2 - 50, height / 2 + 50);
     Radius = kcal;
     Popper1.initPop(Radius);
-    Popper1.display(posX,posY);
+    Popper1.display(posX, posY);
     Popper1.resizer();
     popStyle();
+    pushStyle();
+    //Put it somewhere random on the stage, with a random size and colour
+    fill(255, random(50, 150));
+    textSize(kcal + 5);
+    text(username, posX, posY);
+    popStyle();
   }
-}
+} 

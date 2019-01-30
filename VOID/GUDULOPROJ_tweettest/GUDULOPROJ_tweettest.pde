@@ -90,9 +90,10 @@ ArrayList<Tweetos> tweets = new ArrayList();
 Twitter twitter ;
 Query query;
 
+
 void setup() {
   fullScreen(P2D);
-  pgPop = createGraphics(1600,900);
+  pgPop = createGraphics(1600, 900);
   minim = new Minim(this);
   background(255);
   smooth();
@@ -110,9 +111,9 @@ void setup() {
   cb.setOAuthAccessToken("1087299040302284806-KpRNrswnQzfYl1zkMROgRonxydTSJY");
   cb.setOAuthAccessTokenSecret("DZBd0Hvzk2hR67ev6oInsvithGMXFxgzERyQsYmwjMcBe");
   twitter = new TwitterFactory(cb.build()).getInstance();
-  query = new Query("GJ");
+  query = new Query("lecolededesign");
 
-
+  thread("queryThread"); //execution en parallèle
   ///////////SLIDER///////////
   /* cp5 = new ControlP5(this);
    
@@ -174,13 +175,64 @@ void draw() {
   if (trounoir) majvoid();
   if (troureverse) majvoidrev();
 
-  ///// SEARCH //////
-  if ( frameCount % 150 == 0) {
+  for (int i = 0; i < particules.size(); i++) {
+    Particle particucule = particules.get(i);
+    particucule.update();
+    particucule.display(i);
+  }
+ 
+  ///// SECOND STEP : DISPLAY DATAS ///////
+  if (frameCount % 200 == 0) {
+    for (int i = 0 ; i < tweets.size() ; i ++){
+      Tweetos t = tweets.get(i);
+      String username = t.name;
+      String content = t.msg;
+      float energie = t.kcal;
+      newPos(0, 100);
+      hamburger.add(new Hamburger(initPos.x, initPos.y, energie, username, content)); //nouveau truc à manger
+      t.update(i);
+      t.display();
+      playSound(pophard);
+      openDoor = true;
+      timer = millis() + 800; // timer pour l'excitation des particles
+  }
+  }
+  //si un objet apparait (et donc que le centre est accessible), je lance un timer pour les exciter avant qu'ils se lancent dans l'agrerssion du pauvre petit paquet qui a pop
+  if (openDoor == true ) t_stamp = millis();
+
+  for (int i = 0; i < hamburger.size(); i++) {
+    Hamburger frites = hamburger.get(i);
+    frites.hambStyle();
+    for (int j = 0; j < tweets.size(); j++) {
+      Tweetos t = tweets.get(j);
+      t.update(j);
+      t.display();
+    }
+  }
+
+
+
+
+  if ( pophard.position() < pophard.length() * random(0.5) && pophard.isPlaying()) {
+    Circlezone.updater();
+  } else Circlezone.reset();
+
+  //verify if there is at least one hamburger on screen
+  if (hamburger.size() == 0) { //if there isn't, so close access to center
+    openDoor = false;
+    timer = t_stamp + 1;
+  }
+}
+
+
+void queryThread(){
+  if (frameCount % 900 == 0){
+    ///// FIRST STEP  : SEARCH //////
     try {
       QueryResult result = twitter.search(query);
       //  println(result);
       for (Status status : result.getTweets()) {
-        println("@", status.getUser().getScreenName());
+         println("@", status.getUser().getScreenName());
         //ranger les id et les tweets dans l'arrayList
         println("Tweet : ", status.getText());
         String user = (String) status.getUser().getScreenName();
@@ -189,7 +241,7 @@ void draw() {
 
         energie = map (user.length(), 0, 40, 5, 30) ;  //8000 plus grande valeur observée sur plsueirus longueds observations
         if (energie > 25) energie = 25 ;
-        Tweetos tw = new Tweetos(user, tweet, energie);
+        Tweetos tw = new Tweetos(user, tweet, energie, width/2);
         tweets.add(tw);
       }
     }
@@ -197,49 +249,6 @@ void draw() {
     catch (TwitterException te) {
       println("Couldn't connect: " + te);
     };
-  }
-  ///// CATCH TWEETS INFOS ///////
-  //Draw a word from the list of words that we've built
-  if (frameCount % 200 == 0) {
-    for (int i = 0; i < tweets.size(); i ++) {
-      String word = tweets.get(i).name;
-       newPos(0, 100);
-    hamburger.add(new Hamburger(initPos.x, initPos.y, energie)); //nouveau truc à manger
-    playSound(pophard);
-    openDoor = true;
-    timer = millis() + 800; // timer pour l'excitation des particles
-          //Put it somewhere random on the stage, with a random size and colour
-      fill(255, random(50, 150));
-      textSize(random(10, 30));
-      text(word, initPos.x,initPos.y);
-    }
-
-    //si un objet apparait (et donc que le centre est accessible), je lance un timer pour les exciter avant qu'ils se lancent dans l'agrerssion du pauvre petit paquet qui a pop
-    if (openDoor == true ) t_stamp = millis();
-    if ( frameCount % 20 == 0) codecnumber = 0 ; // reset la quantité de codecs 
-
-
-    for (int i = 0; i < hamburger.size(); i++) {
-      Hamburger frites = hamburger.get(i);
-      frites.hambStyle();
-    }
-
-
-    for (int i = 0; i < particules.size(); i++) {
-      Particle particucule = particules.get(i);
-      particucule.update();
-      particucule.display(i);
-    }
-
-    if ( pophard.position() < pophard.length() * random(0.5) && pophard.isPlaying()) {
-      Circlezone.updater();
-    } else Circlezone.reset();
-
-    //verify if there is at least one hamburger on screen
-    if (hamburger.size() == 0) { //if there isn't, so close access to center
-      openDoor = false;
-      timer = t_stamp + 1;
-    }
   }
 }
 
